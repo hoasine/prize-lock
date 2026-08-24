@@ -8,6 +8,7 @@
 |---|
 | **Pin the rules. Escrow the prizes. Claim bait-and-switch.** |
 
+[![Live App](https://img.shields.io/badge/Live-prize--lock.vercel.app-0f172a?style=for-the-badge&logo=vercel)](https://prize-lock.vercel.app)
 [![Contract](https://img.shields.io/badge/Contract-0xf461D7c9…0EAf-1f6feb?style=for-the-badge)](#environment-variables)
 [![Frontend](https://img.shields.io/badge/Frontend-Next.js_+_TypeScript-111827?style=for-the-badge)](#project-structure)
 [![Network](https://img.shields.io/badge/Network-GenLayer_Studionet-16a34a?style=for-the-badge)](#environment-variables)
@@ -141,6 +142,7 @@ python -m pytest tests/direct/test_prize_lock.py
 
 ## Links
 
+- Live app: [https://prize-lock.vercel.app](https://prize-lock.vercel.app)
 - GitHub: [https://github.com/hoasine/prize-lock](https://github.com/hoasine/prize-lock)
 - Contract (Studionet): [`0xf461D7c97ed4f0A48BdD97d9fc49818bA09B0EAf`](https://studio.genlayer.com)
 - Source: `contracts/prize_lock.py`
