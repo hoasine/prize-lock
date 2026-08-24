@@ -141,6 +141,7 @@ python -m pytest tests/direct/test_prize_lock.py
 
 ## Links
 
+- GitHub: [https://github.com/hoasine/prize-lock](https://github.com/hoasine/prize-lock)
 - Contract (Studionet): [`0xf461D7c97ed4f0A48BdD97d9fc49818bA09B0EAf`](https://studio.genlayer.com)
 - Source: `contracts/prize_lock.py`
 

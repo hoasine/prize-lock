@@ -95,10 +95,9 @@ export function getStudioUrl(): string {
  * Get the contract address from environment variables
  */
 export function getContractAddress(): string {
-  const address = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS?.trim();
-  if (!address) {
-    return "";
-  }
+  const address =
+    process.env.NEXT_PUBLIC_CONTRACT_ADDRESS?.trim() ||
+    "0xf461D7c97ed4f0A48BdD97d9fc49818bA09B0EAf";
   return address;
 }
 
