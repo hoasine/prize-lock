@@ -25,6 +25,16 @@ Participants **register** and lock the exact rules version they accepted. Submis
 
 The protocol is designed so organizers cannot publish rules A, accept teams, switch to B, then close and withdraw the pool.
 
+## Consensus & evidence (reviewer notes)
+
+These on-chain rules address GenLayer validator agreement and dispute timing:
+
+1. **Payout-determining score consensus** — `review_submission` validators must agree on both `verdict` and `score_meter` (tolerance ±5). Finalize ranks PASS entries by the agreed `score_meter`.
+2. **Immutable evidence binding** — submit/claim/respond store snapshots via `strict_eq`. AI judgment prompts use those on-chain snapshots + pinned rules version (`bound_snapshot_at` / `pinned_rules_version`), not mutable live pages as truth.
+3. **Amendment & response windows enforced in contract** — `file_claim` checks entry **and** amendment `claim_window_ends`; `respond_to_claim` reverts after `response_deadline`; `judge_claim` only after organizer reply **or** deadline expiry.
+
+Demo windows: `claim_window_seconds` / appeal window = **3600s** (1 hour).
+
 ## Core Value Proposition
 
 - **Pin-on-register:** accepted rules version + full text cannot be overwritten by later amends
@@ -86,16 +96,16 @@ Statuses:
 | `register_entry` | write | Participant registers; pins rules; starts clock |
 | `leave_entry` | write | Exit; cannot claim afterward |
 | `submit_entry` | write | Public evidence URLs (+ resubmit clears prior review) |
-| `review_submission` | write | AI review + capped checker reward |
-| `amend_rules` | write (payable) | Clarify or Material change (`is_material`) |
-| `file_claim` | write (payable) | Challenge material amend inside claim window |
-| `respond_to_claim` | write | Organizer reply before judgment |
-| `judge_claim` | write | AI judgment; stakes deferred until settle/appeal |
+| `review_submission` | write | AI review bound to immutable snapshot; validators agree on `score_meter` |
+| `amend_rules` | write (payable) | Clarify or Material change (`is_material`); Material opens claim window |
+| `file_claim` | write (payable) | Challenge material amend inside entry + amendment windows |
+| `respond_to_claim` | write | Organizer reply **before** `response_deadline` |
+| `judge_claim` | write | After reply or deadline; AI on bound snapshots; stakes deferred |
 | `appeal_claim` | write (payable) | One-time appeal |
 | `judge_appeal` | write | Final AI judgment + stake settlement |
 | `settle_claim` | write | After appeal window with no appeal — settle stakes |
-| `release_amend_stake` | write | Release material collateral after window |
-| `finalize_prizes` | write | Pay top PASS entries by `score_meter` |
+| `release_amend_stake` | write | Anyone: release material collateral after window |
+| `finalize_prizes` | write | Pay top PASS entries by consensus `score_meter` |
 | `close_contest` | write | Organizer recovers remainder (guards apply) |
 | `get_contest` / `get_entry` / … | view | Entity reads |
 
@@ -145,6 +155,8 @@ python scripts/deploy_studionet.py
 pip install -r requirements-dev.txt
 python -m pytest tests/direct/test_prize_lock.py
 ```
+
+Covers self-deal, private URLs, pin version, amend-during-claim, LEFT cannot claim, stake floors, close guards, deferred settlement, appeal, and response-window enforcement.
 
 ## Links
 
