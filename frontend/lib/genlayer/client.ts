@@ -97,7 +97,7 @@ export function getStudioUrl(): string {
 export function getContractAddress(): string {
   const address =
     process.env.NEXT_PUBLIC_CONTRACT_ADDRESS?.trim() ||
-    "0xf461D7c97ed4f0A48BdD97d9fc49818bA09B0EAf";
+    "0xC6613989eb1d500FB4eC78a27c121C2Fa8Da247e";
   return address;
 }
 

@@ -9,7 +9,7 @@
 | **Pin the rules. Escrow the prizes. Claim bait-and-switch.** |
 
 [![Live App](https://img.shields.io/badge/Live-prize--lock.vercel.app-0f172a?style=for-the-badge&logo=vercel)](https://prize-lock.vercel.app)
-[![Contract](https://img.shields.io/badge/Contract-0xf461D7c9…0EAf-1f6feb?style=for-the-badge)](#environment-variables)
+[![Contract](https://img.shields.io/badge/Contract-0xC6613989…247e-1f6feb?style=for-the-badge)](#environment-variables)
 [![Frontend](https://img.shields.io/badge/Frontend-Next.js_+_TypeScript-111827?style=for-the-badge)](#project-structure)
 [![Network](https://img.shields.io/badge/Network-GenLayer_Studionet-16a34a?style=for-the-badge)](#environment-variables)
 
@@ -123,14 +123,14 @@ tests/       # Contract/integration tests
 Configure in `frontend/.env.local` (see `frontend/.env.example`):
 
 ```env
-NEXT_PUBLIC_CONTRACT_ADDRESS=0xf461D7c97ed4f0A48BdD97d9fc49818bA09B0EAf
+NEXT_PUBLIC_CONTRACT_ADDRESS=0xC6613989eb1d500FB4eC78a27c121C2Fa8Da247e
 NEXT_PUBLIC_GENLAYER_RPC_URL=https://studio.genlayer.com/api
 NEXT_PUBLIC_GENLAYER_CHAIN_ID=61999
 NEXT_PUBLIC_GENLAYER_CHAIN_NAME=GenLayer Studionet
 NEXT_PUBLIC_GENLAYER_SYMBOL=GEN
 ```
 
-> Redeploy after contract changes and update `NEXT_PUBLIC_CONTRACT_ADDRESS` so Studionet matches local source.
+This Studionet address is the redeploy with validator `score_meter` consensus, immutable snapshot binding, and on-chain amendment/response windows.
 
 ## Local Development
 
@@ -162,7 +162,7 @@ Covers self-deal, private URLs, pin version, amend-during-claim, LEFT cannot cla
 
 - Live app: [https://prize-lock.vercel.app](https://prize-lock.vercel.app)
 - GitHub: [https://github.com/hoasine/prize-lock](https://github.com/hoasine/prize-lock)
-- Contract (Studionet): [`0xf461D7c97ed4f0A48BdD97d9fc49818bA09B0EAf`](https://studio.genlayer.com)
+- Contract (Studionet): [`0xC6613989eb1d500FB4eC78a27c121C2Fa8Da247e`](https://studio.genlayer.com)
 - Source: `contracts/prize_lock.py`
 
 ## Disclaimer
