@@ -165,17 +165,28 @@ export function EntryPanel({ contest, entry, nowSec, defaultExpanded = false }: 
     !entry!.has_open_claim &&
     claimWindowOpen;
 
+  const responseOpen =
+    Boolean(claimQuery.data) &&
+    Number(claimQuery.data!.response_deadline) > 0 &&
+    nowSec <= Number(claimQuery.data!.response_deadline);
+
   const canRespond =
     Boolean(isConnected) &&
     isOrganizer &&
     Boolean(entry?.has_open_claim) &&
-    claimQuery.data?.status === "OPEN";
+    claimQuery.data?.status === "OPEN" &&
+    responseOpen;
+
+  const organizerReplied = Boolean(
+    claimQuery.data && Number(claimQuery.data.organizer_responded_at) > 0
+  );
 
   const canJudge =
     Boolean(isConnected) &&
     Boolean(entry?.has_open_claim) &&
     claimId >= 0 &&
-    claimQuery.data?.status === "OPEN";
+    claimQuery.data?.status === "OPEN" &&
+    (organizerReplied || !responseOpen);
 
   const canAppeal =
     Boolean(isConnected) &&

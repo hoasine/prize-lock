@@ -30,8 +30,10 @@ The protocol is designed so organizers cannot publish rules A, accept teams, swi
 - **Pin-on-register:** accepted rules version + full text cannot be overwritten by later amends
 - **Escrowed prizes:** first + second prizes stay reserved until `finalize_prizes`
 - **Material vs Clarify:** only material changes open a claim window + matching stake
-- **Public evidence only:** localhost / private URLs blocked; contract fetches pages in nondet
+- **Public evidence only:** localhost / private URLs blocked; judgments bind to immutable submit/claim snapshots
+- **Validator-agreed scores:** `score_meter` must converge across validators (±5) — it ranks prize payouts
 - **Fair disputes:** INCONCLUSIVE refunds both sides; one appeal; deferred stake settlement
+- **Enforced windows:** amendment claim window + organizer response deadline checked on-chain
 - **No rug close:** cannot close while submissions exist unpaid, or while claims / windows are open
 - **Anyone-callable AI:** `review_submission` / `judge_*` with capped checker rewards from a separate budget
 
@@ -68,8 +70,12 @@ Statuses:
 | Organizer AFK after amend | Anyone may `release_amend_stake` after window (no open claims) |
 | Fetch fail / empty page | Review → `WARN`; claim → `INCONCLUSIVE` (no fake WIN) |
 | Private / local evidence | Public HTTPS only; localhost and private hosts rejected |
+| Score disagreement across validators | Validators must agree on `verdict` **and** `score_meter` (±5) — payout ranking field |
+| Mutable live pages after submit | Reviews/claims bind to **immutable on-chain snapshots** + pinned rules version |
+| Late organizer reply / early judge | `respond_to_claim` blocked after `response_deadline`; `judge_claim` only after reply or deadline |
+| Claim after amend window | Entry window **and** amendment `claim_window_ends` enforced on-chain |
 | Unbounded checker drain | Checker reward capped; paid only from `checker_budget` |
-| Invalid GenVM web scrape | `web.render` only inside leader/validator nondet blocks |
+| Invalid GenVM web scrape | Snapshot via `strict_eq`; LLM judgment inside `run_nondet_unsafe` |
 
 ## Core Contract API
 
