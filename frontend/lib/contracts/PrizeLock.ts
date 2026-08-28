@@ -41,6 +41,7 @@ export type ContestView = {
   status: ContestStatus;
   closed: boolean;
   has_open_claim_window?: boolean;
+  has_open_material_amend_window?: boolean;
   claim_window_seconds?: number;
   appeal_window_seconds?: number;
   checker_reward?: number | string;

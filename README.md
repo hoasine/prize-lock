@@ -31,7 +31,7 @@ These on-chain rules address GenLayer validator agreement and dispute timing:
 
 1. **Payout-determining score consensus** — `review_submission` validators must agree on both `verdict` and `score_meter` (tolerance ±5). Finalize ranks PASS entries by the agreed `score_meter`.
 2. **Immutable evidence binding** — submit/claim/respond store snapshots via `strict_eq`. AI judgment prompts use those on-chain snapshots + pinned rules version (`bound_snapshot_at` / `pinned_rules_version`), not mutable live pages as truth.
-3. **Amendment & response windows enforced in contract** — `file_claim` checks entry **and** amendment `claim_window_ends`; `respond_to_claim` reverts after `response_deadline`; `judge_claim` only after organizer reply **or** deadline expiry.
+3. **Amendment & response windows enforced in contract** — `file_claim` checks entry **and** amendment `claim_window_ends`; `respond_to_claim` reverts after `response_deadline`; `judge_claim` only after organizer reply **or** deadline expiry; **`amend_rules` is blocked while a prior material amendment claim window is still open** (no stacked amends), using the inclusive boundary `now <= claim_window_ends` (same as `file_claim` / `release_amend_stake`).
 
 Demo windows: `claim_window_seconds` / appeal window = **3600s** (1 hour).
 
@@ -43,7 +43,7 @@ Demo windows: `claim_window_seconds` / appeal window = **3600s** (1 hour).
 - **Public evidence only:** localhost / private URLs blocked; judgments bind to immutable submit/claim snapshots
 - **Validator-agreed scores:** `score_meter` must converge across validators (±5) — it ranks prize payouts
 - **Fair disputes:** INCONCLUSIVE refunds both sides; one appeal; deferred stake settlement
-- **Enforced windows:** amendment claim window + organizer response deadline checked on-chain
+- **Enforced windows:** amendment claim window + organizer response deadline checked on-chain; no stacked amend while a prior material window is open (`now <= claim_window_ends`)
 - **No rug close:** cannot close while submissions exist unpaid, or while claims / windows are open
 - **Anyone-callable AI:** `review_submission` / `judge_*` with capped checker rewards from a separate budget
 
@@ -53,7 +53,7 @@ Demo windows: `claim_window_seconds` / appeal window = **3600s** (1 hour).
 2. **Participant registers** — pins rules version; submission clock starts on first registration
 3. **Participant submits** — notes + public demo / repo URLs (resubmit allowed before deadline)
 4. **Anyone calls `review_submission`** — AI returns `PASS` / `WARN` / `FAIL` + `score_meter`
-5. **Optional material amend** — stake + reason; opens claim window for active entries
+5. **Optional material amend** — stake + reason; opens claim window for active entries; further amends blocked until that window ends
 6. **Optional claim path** — `file_claim` → `respond_to_claim` → `judge_claim` → (optional) one `appeal_claim` → `settle_claim` / `judge_appeal`
 7. **Finalize then close** — rank PASS entries by score; organizer recovers remainder only after prizes are settled
 
@@ -84,6 +84,7 @@ Statuses:
 | Mutable live pages after submit | Reviews/claims bind to **immutable on-chain snapshots** + pinned rules version |
 | Late organizer reply / early judge | `respond_to_claim` blocked after `response_deadline`; `judge_claim` only after reply or deadline |
 | Claim after amend window | Entry window **and** amendment `claim_window_ends` enforced on-chain |
+| Stacked amend over open material window | `amend_rules` blocked while any prior MATERIAL window is open (`now <= claim_window_ends`) |
 | Unbounded checker drain | Checker reward capped; paid only from `checker_budget` |
 | Invalid GenVM web scrape | Snapshot via `strict_eq`; LLM judgment inside `run_nondet_unsafe` |
 
@@ -97,7 +98,7 @@ Statuses:
 | `leave_entry` | write | Exit; cannot claim afterward |
 | `submit_entry` | write | Public evidence URLs (+ resubmit clears prior review) |
 | `review_submission` | write | AI review bound to immutable snapshot; validators agree on `score_meter` |
-| `amend_rules` | write (payable) | Clarify or Material change (`is_material`); Material opens claim window |
+| `amend_rules` | write (payable) | Clarify or Material (`is_material`); Material opens claim window; blocked while open claims **or** a prior material window is open |
 | `file_claim` | write (payable) | Challenge material amend inside entry + amendment windows |
 | `respond_to_claim` | write | Organizer reply **before** `response_deadline` |
 | `judge_claim` | write | After reply or deadline; AI on bound snapshots; stakes deferred |
@@ -130,7 +131,7 @@ NEXT_PUBLIC_GENLAYER_CHAIN_NAME=GenLayer Studionet
 NEXT_PUBLIC_GENLAYER_SYMBOL=GEN
 ```
 
-This Studionet address is the redeploy with validator `score_meter` consensus, immutable snapshot binding, and on-chain amendment/response windows.
+This Studionet address is the live app target. After pulling this revision, **redeploy** `contracts/prize_lock.py` so Studionet includes the stacked-amend guard (`has_open_material_amend_window` / inclusive `now <= claim_window_ends`), then update `NEXT_PUBLIC_CONTRACT_ADDRESS` here, in `frontend/.env*`, and on Vercel.
 
 ## Local Development
 
@@ -156,7 +157,7 @@ pip install -r requirements-dev.txt
 python -m pytest tests/direct/test_prize_lock.py
 ```
 
-Covers self-deal, private URLs, pin version, amend-during-claim, LEFT cannot claim, stake floors, close guards, deferred settlement, appeal, and response-window enforcement.
+Covers self-deal, private URLs, pin version, amend-during-claim, **no stacked amend while material claim window is open** (including `now == claim_window_ends`), LEFT cannot claim, stake floors, close guards, deferred settlement, appeal, and response-window enforcement.
 
 ## Links
 

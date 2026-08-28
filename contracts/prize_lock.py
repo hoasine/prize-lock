@@ -311,12 +311,14 @@ class PrizeLock(gl.Contract):
                 self.entries[e.id] = e
 
     def _has_open_claim_window(self, c: Contest, now: u256) -> bool:
+        # Match file_claim: window open while ends != 0 and now <= ends.
         for i in range(int(c.entry_count)):
             eid = self.contest_entry_index[self._index_key(c.id, u256(i))]
             e = self.entries[eid]
-            if int(e.claim_window_ends) > int(now) and e.status in (
-                "ACTIVE",
-                "SUBMITTED",
+            if (
+                int(e.claim_window_ends) > 0
+                and int(now) <= int(e.claim_window_ends)
+                and e.status in ("ACTIVE", "SUBMITTED")
             ):
                 return True
         return False
@@ -328,6 +330,23 @@ class PrizeLock(gl.Contract):
             if am.kind == "MATERIAL" and int(am.released) == 0:
                 return am
         return None
+
+    def _has_open_material_amend_window(self, c: Contest, now: u256) -> bool:
+        """True while any unreleased MATERIAL amendment still has an open claim window.
+
+        Boundary matches file_claim / release_amend_stake: open while now <= ends.
+        """
+        for i in range(int(c.amendment_count)):
+            amid = self.contest_amendment_index[self._index_key(c.id, u256(i))]
+            am = self.amendments[amid]
+            if (
+                am.kind == "MATERIAL"
+                and int(am.released) == 0
+                and int(am.claim_window_ends) > 0
+                and int(now) <= int(am.claim_window_ends)
+            ):
+                return True
+        return False
 
     def _require_contest(self, contest_id: u256) -> Contest:
         if contest_id not in self.contests:
@@ -376,6 +395,9 @@ class PrizeLock(gl.Contract):
             "status": c.status,
             "closed": int(c.closed) == 1,
             "has_open_claim_window": self._has_open_claim_window(c, now),
+            "has_open_material_amend_window": self._has_open_material_amend_window(
+                c, now
+            ),
             "claim_window_seconds": int(self.claim_window_seconds),
             "appeal_window_seconds": int(self.appeal_window_seconds),
             "checker_reward": int(self.checker_reward),
@@ -884,6 +906,12 @@ END_IMMUTABLE_EVIDENCE
             raise gl.vm.UserError("Contest closed")
         if self._contest_has_open_claim(c):
             raise gl.vm.UserError("Cannot amend while a claim is open")
+        now = self._now_epoch()
+        # Block stacking amends over an active material claim window (team guard).
+        if self._has_open_material_amend_window(c, now):
+            raise gl.vm.UserError(
+                "Cannot amend while a prior material amendment claim window is open"
+            )
         if not str(new_rules).strip():
             raise gl.vm.UserError("New rules required")
         if not str(reason).strip():

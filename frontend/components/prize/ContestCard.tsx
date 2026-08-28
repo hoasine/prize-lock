@@ -103,10 +103,11 @@ export function ContestCard({ contest }: { contest: ContestView }) {
 
   const hasOpenClaims = Number(contest.open_claim_count) > 0;
   const hasClaimWindow = Boolean(contest.has_open_claim_window);
+  const hasMaterialAmendWindow = Boolean(contest.has_open_material_amend_window);
 
   const canOrganizerAct = Boolean(isConnected) && isOrganizer && !closed;
   const canAmend =
-    canOrganizerAct && !finalized && !hasOpenClaims;
+    canOrganizerAct && !finalized && !hasOpenClaims && !hasMaterialAmendWindow;
   const canFinalize =
     Boolean(isConnected) &&
     !closed &&
@@ -402,6 +403,7 @@ export function ContestCard({ contest }: { contest: ContestView }) {
                   <DialogTitle>Amend rules</DialogTitle>
                   <DialogDescription>
                     Requires stake + reason. Material changes open a claim window.
+                    A second amend is blocked while that window is open.
                   </DialogDescription>
                 </DialogHeader>
                 <form className="space-y-4" onSubmit={onAmend}>
@@ -528,6 +530,12 @@ export function ContestCard({ contest }: { contest: ContestView }) {
             </Button>
           ))}
         </div>
+      )}
+
+      {isOrganizer && !finalized && hasMaterialAmendWindow && (
+        <p className="text-xs text-muted-foreground">
+          Amend locked: a prior material amendment claim window is still open.
+        </p>
       )}
 
       {myEntry && (

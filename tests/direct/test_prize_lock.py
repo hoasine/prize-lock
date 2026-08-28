@@ -187,6 +187,97 @@ class TestAmendAndClaim:
                 value=FIRST,
             )
 
+    def test_cannot_amend_while_material_claim_window_open(
+        self, contract, direct_vm, direct_alice, direct_bob
+    ):
+        """Team guard: no stacked amend over a prior material claim window."""
+        _create(contract)
+        _register(contract, direct_vm, direct_bob)
+        direct_vm.sender = direct_alice
+        _payable(
+            contract,
+            "amend_rules",
+            0,
+            "Material change one",
+            "First material cut",
+            FIRST // 2,
+            SECOND,
+            0,
+            1,
+            value=FIRST,
+        )
+        c = contract.get_contest(0)
+        assert c["has_open_material_amend_window"] is True
+        # No claim filed yet — window still open, second amend must fail.
+        with pytest.raises(Exception):
+            _payable(
+                contract,
+                "amend_rules",
+                0,
+                "Material change two",
+                "Stack another amend",
+                FIRST // 4,
+                SECOND,
+                0,
+                1,
+                value=FIRST,
+            )
+        # Clarify also blocked while material window is open.
+        with pytest.raises(Exception):
+            _payable(
+                contract,
+                "amend_rules",
+                0,
+                "Wording only",
+                "Clarify during window",
+                FIRST // 2,
+                SECOND,
+                0,
+                0,
+                value=STAKE,
+            )
+
+    def test_amend_blocked_at_exact_claim_window_end(
+        self, contract, direct_vm, direct_alice, direct_bob, monkeypatch
+    ):
+        """Inclusive boundary: now == claim_window_ends still blocks stacked amend."""
+        _create(contract)
+        _register(contract, direct_vm, direct_bob)
+        direct_vm.sender = direct_alice
+        _payable(
+            contract,
+            "amend_rules",
+            0,
+            "Material change one",
+            "First material cut",
+            FIRST // 2,
+            SECOND,
+            0,
+            1,
+            value=FIRST,
+        )
+        am = contract.get_amendment(0)
+        ends = int(am["claim_window_ends"])
+        assert ends > 0
+        monkeypatch.setattr(contract, "_now_epoch", lambda: ends)
+        assert contract.get_contest(0)["has_open_material_amend_window"] is True
+        with pytest.raises(Exception):
+            _payable(
+                contract,
+                "amend_rules",
+                0,
+                "Material at boundary",
+                "Should still be blocked",
+                FIRST // 4,
+                SECOND,
+                0,
+                1,
+                value=FIRST,
+            )
+        # One second after end: window closed for guards (claim also closed: now > ends).
+        monkeypatch.setattr(contract, "_now_epoch", lambda: ends + 1)
+        assert contract.get_contest(0)["has_open_material_amend_window"] is False
+
     def test_left_cannot_claim(self, contract, direct_vm, direct_alice, direct_bob):
         _create(contract)
         _register(contract, direct_vm, direct_bob)
